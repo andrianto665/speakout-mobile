@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -18,13 +19,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _register() async {
     if (_nameCtrl.text.isEmpty || _emailCtrl.text.isEmpty || _passCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Semua field harus diisi'), backgroundColor: Colors.red),
+        SnackBar(
+          content: const Text('Semua field harus diisi'),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
       );
       return;
     }
     if (!_agreeTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Anda harus menyetujui Terms of Service'), backgroundColor: Colors.red),
+        SnackBar(
+          content: const Text('Anda harus menyetujui Terms of Service'),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
       );
       return;
     }
@@ -37,30 +44,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
     
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registrasi berhasil! Silakan login.'), backgroundColor: Colors.green),
+        SnackBar(
+          content: const Text('Registrasi berhasil! Silakan login.'),
+          backgroundColor: const Color(0xFF10B981),
+        ),
       );
       Navigator.pop(context);
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registrasi gagal.'), backgroundColor: Colors.red),
+        SnackBar(
+          content: const Text('Registrasi gagal.'),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: Column(
         children: [
-          // 🔹 HEADER (Sama dengan index.html & register.html)
+          // 🔹 HEADER - Mobile Optimized
           Container(
             decoration: const BoxDecoration(
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
+                  color: Color(0x14000000),
                   blurRadius: 10,
                   offset: Offset(0, 2),
                 ),
@@ -68,7 +83,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 15 : 20,
+                  vertical: isMobile ? 12 : 15,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -76,8 +94,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Row(
                       children: [
                         Container(
-                          width: 45,
-                          height: 45,
+                          width: isMobile ? 35 : 45,
+                          height: isMobile ? 35 : 45,
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               colors: [Color(0xFF667eea), Color(0xFF764ba2)],
@@ -89,87 +107,111 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               'S',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 20,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        const Column(
+                        SizedBox(width: isMobile ? 8 : 10),
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'SpeakOut',
                               style: TextStyle(
-                                fontSize: 24,
+                                fontSize: isMobile ? 18 : 24,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF667eea),
+                                color: const Color(0xFF667eea),
                               ),
                             ),
-                            Text(
-                              'ngomong Inggris jadi mudah',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
+                            if (!isMobile)
+                              const Text(
+                                'ngomong Inggris jadi mudah',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF6B7280),
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ],
                     ),
-                    
-                    // Navigation Menu (Desktop)
-                    const Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _NavMenuItem(title: 'Home'),
-                          SizedBox(width: 30),
-                          _NavMenuItem(title: 'Course'),
-                          SizedBox(width: 30),
-                          _NavMenuItem(title: 'Teachers'),
-                          SizedBox(width: 30),
-                          _NavMenuItem(title: 'Record'),
-                          SizedBox(width: 30),
-                          _NavMenuItem(title: 'Schedules'),
-                          SizedBox(width: 30),
-                          _NavMenuItem(title: 'Articles'),
-                        ],
+
+                    // Mobile: Hamburger Menu
+                    if (isMobile)
+                      IconButton(
+                        icon: const Icon(Icons.menu, color: Color(0xFF667eea)),
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) => Container(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildMobileMenuItem('Home'),
+                                  _buildMobileMenuItem('Course'),
+                                  _buildMobileMenuItem('Teachers'),
+                                  _buildMobileMenuItem('Record'),
+                                  _buildMobileMenuItem('Schedules'),
+                                  _buildMobileMenuItem('Articles'),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    else
+                      // Desktop: Navigation Menu
+                      const Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _NavMenuItem(title: 'Home'),
+                            SizedBox(width: 30),
+                            _NavMenuItem(title: 'Course'),
+                            SizedBox(width: 30),
+                            _NavMenuItem(title: 'Teachers'),
+                            SizedBox(width: 30),
+                            _NavMenuItem(title: 'Record'),
+                            SizedBox(width: 30),
+                            _NavMenuItem(title: 'Schedules'),
+                            SizedBox(width: 30),
+                            _NavMenuItem(title: 'Articles'),
+                          ],
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
             ),
           ),
 
-          // 🔹 MAIN CONTENT (2 Columns: Form + Sidebar)
+          // 🔹 MAIN CONTENT - Mobile Optimized
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(isMobile ? 15 : 20),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1200),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       if (constraints.maxWidth < 968) {
-                        // Mobile: Stack vertical
                         return Column(
                           children: [
-                            _buildRegisterForm(),
-                            const SizedBox(height: 40),
-                            _buildSidebar(),
+                            _buildRegisterForm(isMobile: isMobile),
+                            const SizedBox(height: 30),
+                            _buildSidebar(isMobile: isMobile),
                           ],
                         );
                       } else {
-                        // Desktop: Side by side
                         return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(flex: 1, child: _buildRegisterForm()),
+                            Expanded(flex: 1, child: _buildRegisterForm(isMobile: false)),
                             const SizedBox(width: 40),
-                            SizedBox(width: 400, child: _buildSidebar()),
+                            SizedBox(width: 400, child: _buildSidebar(isMobile: false)),
                           ],
                         );
                       }
@@ -184,16 +226,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // 🔸 REGISTER FORM
-  Widget _buildRegisterForm() {
+  Widget _buildMobileMenuItem(String title) {
+    return ListTile(
+      title: Text(title, style: const TextStyle(fontSize: 16)),
+      onTap: () => Navigator.pop(context),
+    );
+  }
+
+  // 🔸 REGISTER FORM - Mobile Optimized
+  Widget _buildRegisterForm({required bool isMobile}) {
     return Container(
-      padding: const EdgeInsets.all(40),
+      padding: EdgeInsets.all(isMobile ? 25 : 40),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: const Color(0x14000000),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -202,13 +251,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Form
-          const Text(
+          Text(
             'Create Account',
             style: TextStyle(
-              fontSize: 32,
+              fontSize: isMobile ? 24 : 32,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1a1a1a),
+              color: const Color(0xFF1a1a1a),
             ),
           ),
           const SizedBox(height: 10),
@@ -218,24 +266,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 onTap: () => Navigator.pop(context),
                 child: const Text(
                   'Home',
-                  style: TextStyle(
-                    color: Color(0xFF667eea),
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Color(0xFF667eea), fontSize: 14),
                 ),
               ),
-              const Text(' / Register', style: TextStyle(color: Colors.grey, fontSize: 14)),
+              const Text(
+                ' / Register',
+                style: TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+              ),
             ],
           ),
-          const SizedBox(height: 30),
+          SizedBox(height: isMobile ? 20 : 30),
 
           // Full Name Field
           const Text(
             'Full Name',
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -243,31 +288,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
             decoration: InputDecoration(
               hintText: 'Enter your full name',
               filled: true,
-              fillColor: Colors.grey.shade50,
+              fillColor: const Color(0xFFF8F9FA),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: const BorderSide(color: Color(0xFFE1E5EB)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: const BorderSide(color: Color(0xFFE1E5EB)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF667eea),
+                  width: 2,
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
           ),
-          const SizedBox(height: 25),
+          SizedBox(height: isMobile ? 20 : 25),
 
           // Email Field
           const Text(
             'Email Address',
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -275,32 +323,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
             decoration: InputDecoration(
               hintText: 'Enter your email',
               filled: true,
-              fillColor: Colors.grey.shade50,
+              fillColor: const Color(0xFFF8F9FA),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: const BorderSide(color: Color(0xFFE1E5EB)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: const BorderSide(color: Color(0xFFE1E5EB)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF667eea),
+                  width: 2,
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
             keyboardType: TextInputType.emailAddress,
           ),
-          const SizedBox(height: 25),
+          SizedBox(height: isMobile ? 20 : 25),
 
           // Password Field
           const Text(
             'Password',
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -308,24 +359,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
             decoration: InputDecoration(
               hintText: 'Minimum 6 characters',
               filled: true,
-              fillColor: Colors.grey.shade50,
+              fillColor: const Color(0xFFF8F9FA),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: const BorderSide(color: Color(0xFFE1E5EB)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: const BorderSide(color: Color(0xFFE1E5EB)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF667eea),
+                  width: 2,
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
             obscureText: true,
           ),
-          const SizedBox(height: 25),
+          SizedBox(height: isMobile ? 20 : 25),
 
           // Terms & Conditions Checkbox
           Row(
@@ -337,32 +394,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 activeColor: const Color(0xFF667eea),
               ),
               Expanded(
-                child: RichText(
-                  text: const TextSpan(
-                    style: TextStyle(color: Colors.grey, fontSize: 14, height: 1.4),
-                    children: [
-                      TextSpan(text: 'I agree to the '),
-                      TextSpan(
-                        text: 'Terms of Service',
-                        style: TextStyle(color: Color(0xFF667eea)),
-                      ),
-                      TextSpan(text: ' and '),
-                      TextSpan(
-                        text: 'Privacy Policy',
-                        style: TextStyle(color: Color(0xFF667eea)),
-                      ),
-                    ],
+                child: GestureDetector(
+                  onTap: () => setState(() => _agreeTerms = !_agreeTerms),
+                  child: RichText(
+                    text: const TextSpan(
+                      style: TextStyle(color: Color(0xFF6B7280), fontSize: 14, height: 1.4),
+                      children: [
+                        TextSpan(text: 'I agree to the '),
+                        TextSpan(
+                          text: 'Terms of Service',
+                          style: TextStyle(color: Color(0xFF667eea)),
+                        ),
+                        TextSpan(text: ' and '),
+                        TextSpan(
+                          text: 'Privacy Policy',
+                          style: TextStyle(color: Color(0xFF667eea)),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 25),
+          SizedBox(height: isMobile ? 20 : 25),
 
           // Register Button
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: isMobile ? 48 : 50,
             child: ElevatedButton(
               onPressed: _isLoading ? null : _register,
               style: ElevatedButton.styleFrom(
@@ -382,55 +442,61 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text(
+                  : Text(
                       'Create Account',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: isMobile ? 15 : 16,
                         fontWeight: FontWeight.w600,
                         fontFamily: 'Poppins',
                       ),
                     ),
             ),
           ),
-          const SizedBox(height: 25),
+          SizedBox(height: isMobile ? 20 : 25),
 
-          // Login Link
+          // ✅ FIX: Login Link - "Log In" bisa diklik
           Center(
-            child: RichText(
-              text: const TextSpan(
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-                children: [
-                  TextSpan(text: 'Already have an account? '),
-                  TextSpan(
-                    text: 'Log In',
-                    style: TextStyle(
-                      color: Color(0xFF667eea),
-                      fontWeight: FontWeight.w600,
-                    ),
+            child: GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              ),
+              child: RichText(
+                text: TextSpan(
+                  style: TextStyle(
+                    color: const Color(0xFF6B7280),
+                    fontSize: isMobile ? 13 : 14,
                   ),
-                ],
+                  children: const [
+                    TextSpan(text: 'Already have an account? '),
+                    TextSpan(
+                      text: 'Log In',
+                      style: TextStyle(
+                        color: Color(0xFF667eea),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: const SizedBox(height: 25),
-          ),
+          SizedBox(height: isMobile ? 20 : 25),
         ],
       ),
     );
   }
 
-  // 🔸 SIDEBAR (Office Info) - Sama dengan login_screen.dart
-  Widget _buildSidebar() {
+  // 🔸 SIDEBAR (Office Info) - Mobile Optimized
+  Widget _buildSidebar({required bool isMobile}) {
     return Container(
-      padding: const EdgeInsets.all(30),
+      padding: EdgeInsets.all(isMobile ? 20 : 30),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: const Color(0x14000000),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -439,53 +505,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'SpeakOut Office',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: isMobile ? 18 : 20,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1a1a1a),
+              color: const Color(0xFF1a1a1a),
             ),
           ),
-          const SizedBox(height: 20),
-          const Text(
+          SizedBox(height: isMobile ? 15 : 20),
+          Text(
             'Jl. Jenderal Sudirman 3007 KM 3.5\nPalembang',
             style: TextStyle(
-              color: Colors.grey,
-              fontSize: 14,
+              color: const Color(0xFF6B7280),
+              fontSize: isMobile ? 13 : 14,
               height: 1.8,
             ),
           ),
-          const SizedBox(height: 15),
-          const Text(
+          SizedBox(height: isMobile ? 10 : 15),
+          Text(
             '(0711) 319988 / 370066',
             style: TextStyle(
-              color: Colors.grey,
+              color: const Color(0xFF6B7280),
+              fontSize: isMobile ? 13 : 14,
+              height: 1.8,
+            ),
+          ),
+          const Text(
+            'speakout@palcomtech.com',
+            style: TextStyle(
+              color: Color(0xFF667eea),
               fontSize: 14,
               height: 1.8,
             ),
           ),
-          GestureDetector(
-            onTap: () {},
-            child: const Text(
-              'speakout@palcomtech.com',
-              style: TextStyle(
-                color: Color(0xFF667eea),
-                fontSize: 14,
-                height: 1.8,
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          GestureDetector(
-            onTap: () {},
-            child: const Text(
-              'View Map →',
-              style: TextStyle(
-                color: Color(0xFF667eea),
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
+          SizedBox(height: isMobile ? 8 : 10),
+          const Text(
+            'View Map →',
+            style: TextStyle(
+              color: Color(0xFF667eea),
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
             ),
           ),
         ],
@@ -494,7 +554,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 }
 
-// 🔸 NAVIGATION MENU ITEM WIDGET (Reusable)
+// 🔸 NAVIGATION MENU ITEM WIDGET
 class _NavMenuItem extends StatelessWidget {
   final String title;
   const _NavMenuItem({required this.title});
@@ -506,7 +566,7 @@ class _NavMenuItem extends StatelessWidget {
       child: Text(
         title,
         style: const TextStyle(
-          color: Colors.black87,
+          color: Color(0xFF333333),
           fontWeight: FontWeight.w500,
           fontSize: 14,
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import 'dashboard_screen.dart';
 
 class CourseScreen extends StatefulWidget {
   final int courseId;
@@ -18,9 +19,7 @@ class CourseScreen extends StatefulWidget {
 class _CourseScreenState extends State<CourseScreen> {
   int _progress = 0;
   bool _isUpdating = false;
-  String _displayName = 'User';
 
-  // Mock lessons data (sesuaikan dengan response API jika ada endpoint detail)
   final List<Map<String, dynamic>> _lessons = [
     {'title': 'Introduction to Public Speaking', 'duration': '15 mins'},
     {'title': 'Overcoming Stage Fright', 'duration': '20 mins'},
@@ -29,21 +28,6 @@ class _CourseScreenState extends State<CourseScreen> {
     {'title': 'Body Language Mastery', 'duration': '22 mins'},
     {'title': 'Final Presentation Practice', 'duration': '30 mins'},
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    final userData = await ApiService.getUserData();
-    if (mounted && userData != null && userData['name'] != null) {
-      setState(() {
-        _displayName = userData['name'].toString().split(' ').first;
-      });
-    }
-  }
 
   Future<void> _updateProgress() async {
     setState(() => _isUpdating = true);
@@ -58,6 +42,7 @@ class _CourseScreenState extends State<CourseScreen> {
     });
     
     if (!mounted) return;
+    // ignore: use_build_context_synchronously
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(success ? '✅ Progress berhasil diupdate!' : '❌ Gagal update progress.'),
@@ -68,17 +53,19 @@ class _CourseScreenState extends State<CourseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: Column(
         children: [
-          // 🔹 HEADER (Identik dengan layar lain)
+          // 🔹 HEADER
           Container(
             decoration: const BoxDecoration(
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
+                  color: Color(0x0D000000),
                   blurRadius: 10,
                   offset: Offset(0, 2),
                 ),
@@ -86,7 +73,10 @@ class _CourseScreenState extends State<CourseScreen> {
             ),
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 12 : 20,
+                  vertical: isMobile ? 10 : 15,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -94,8 +84,8 @@ class _CourseScreenState extends State<CourseScreen> {
                     Row(
                       children: [
                         Container(
-                          width: 45,
-                          height: 45,
+                          width: isMobile ? 35 : 45,
+                          height: isMobile ? 35 : 45,
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               colors: [Color(0xFF667eea), Color(0xFF764ba2)],
@@ -107,85 +97,121 @@ class _CourseScreenState extends State<CourseScreen> {
                               'S',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 20,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'SpeakOut',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF667eea),
-                              ),
-                            ),
-                            Text(
-                              'ngomong Inggris jadi mudah',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
+                        SizedBox(width: isMobile ? 8 : 10),
+                        Text(
+                          'SpeakOut',
+                          style: TextStyle(
+                            fontSize: isMobile ? 16 : 24,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF667eea),
+                          ),
                         ),
                       ],
                     ),
-                    
-                    // Navigation Menu
-                    const Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _NavMenuItem(title: 'Home'),
-                          SizedBox(width: 30),
-                          _NavMenuItem(title: 'Course'),
-                          SizedBox(width: 30),
-                          _NavMenuItem(title: 'Teachers'),
-                          SizedBox(width: 30),
-                          _NavMenuItem(title: 'Record'),
-                          SizedBox(width: 30),
-                          _NavMenuItem(title: 'Schedules'),
-                          SizedBox(width: 30),
-                          _NavMenuItem(title: 'Articles'),
-                        ],
-                      ),
-                    ),
-                    
-                    // User Info + Logout
+
+                    // Right Side: Logout + Menu
                     Row(
                       children: [
-                        Text(
-                          _displayName,
-                          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                        ),
-                        const SizedBox(width: 15),
+                        // Logout Button
                         InkWell(
-                          onTap: () {
-                            Navigator.popUntil(context, (route) => route.isFirst);
+                          onTap: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Logout'),
+                                content: const Text('Yakin ingin logout?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('Batal'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFEF4444),
+                                    ),
+                                    child: const Text('Logout'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            
+                            if (confirm == true && mounted) {
+                              await ApiService.logout();
+                              if (!mounted) return;
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                                (route) => false,
+                              );
+                            }
                           },
                           borderRadius: BorderRadius.circular(6),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade500,
-                              borderRadius: BorderRadius.circular(6),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isMobile ? 10 : 16,
+                              vertical: isMobile ? 6 : 8,
+                            ),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFEF4444),
+                              borderRadius: BorderRadius.all(Radius.circular(6)),
                             ),
                             child: const Text(
-                              'Back',
+                              'Logout',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 14,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
                         ),
+
+                        // Hamburger Menu (mobile only)
+                        if (isMobile)
+                          IconButton(
+                            icon: const Icon(Icons.menu, color: Color(0xFF667eea)),
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) => Container(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      ListTile(
+                                        leading: const Icon(Icons.home),
+                                        title: const Text('Home'),
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                                          );
+                                        },
+                                      ),
+                                      ListTile(
+                                        leading: const Icon(Icons.school),
+                                        title: const Text('Courses'),
+                                        onTap: () => Navigator.pop(context),
+                                      ),
+                                      ListTile(
+                                        leading: const Icon(Icons.people),
+                                        title: const Text('Teachers'),
+                                        onTap: () => Navigator.pop(context),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                       ],
                     ),
                   ],
@@ -194,32 +220,31 @@ class _CourseScreenState extends State<CourseScreen> {
             ),
           ),
 
-          // 🔹 MAIN CONTENT (2 Columns: Course Detail + Sidebar)
+          // 🔹 MAIN CONTENT
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(isMobile ? 15 : 20),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1200),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       if (constraints.maxWidth < 968) {
-                        // Mobile: Stack vertical
                         return Column(
                           children: [
-                            _buildCourseDetail(),
-                            const SizedBox(height: 40),
-                            _buildSidebar(),
+                            _buildCourseDetail(isMobile: true),
+                            const SizedBox(height: 30),
+                            _buildSidebar(isMobile: true),
                           ],
                         );
                       } else {
-                        // Desktop: Side by side
                         return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(flex: 1, child: _buildCourseDetail()),
+                            Expanded(flex: 1, child: _buildCourseDetail(isMobile: false)),
                             const SizedBox(width: 40),
-                            SizedBox(width: 400, child: _buildSidebar()),
+                            // ✅ FIX: Hapus 'const' karena _buildSidebar adalah method call
+                            SizedBox(width: 400, child: _buildSidebar(isMobile: false)),
                           ],
                         );
                       }
@@ -235,15 +260,16 @@ class _CourseScreenState extends State<CourseScreen> {
   }
 
   // 🔸 COURSE DETAIL CONTENT
-  Widget _buildCourseDetail() {
+  Widget _buildCourseDetail({required bool isMobile}) {
     return Container(
-      padding: const EdgeInsets.all(30),
+      padding: EdgeInsets.all(isMobile ? 20 : 30),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
+          // ✅ FIX: Gunakan Color.fromRGBO atau hex
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: const Color(0x14000000),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -259,36 +285,53 @@ class _CourseScreenState extends State<CourseScreen> {
                 onTap: () => Navigator.pop(context),
                 child: const Text('Home', style: TextStyle(color: Color(0xFF667eea), fontSize: 14)),
               ),
-              const Text(' / ', style: TextStyle(color: Colors.grey, fontSize: 14)),
+              const Text(' / ', style: TextStyle(color: Color(0xFF666666), fontSize: 14)),
               GestureDetector(
                 onTap: () => Navigator.popUntil(context, (route) => route.isFirst),
                 child: const Text('Courses', style: TextStyle(color: Color(0xFF667eea), fontSize: 14)),
               ),
-              const Text(' / ', style: TextStyle(color: Colors.grey, fontSize: 14)),
-              Text(widget.courseTitle, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+              const Text(' / ', style: TextStyle(color: Color(0xFF666666), fontSize: 14)),
+              Expanded(
+                child: Text(
+                  widget.courseTitle,
+                  style: const TextStyle(color: Color(0xFF666666), fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
 
-          // Course Title & Instructor
+          // Course Title
           Text(
             widget.courseTitle,
-            style: const TextStyle(
-              fontSize: 28,
+            style: TextStyle(
+              fontSize: isMobile ? 22 : 28,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1a1a1a),
+              color: const Color(0xFF1a1a1a),
             ),
           ),
           const SizedBox(height: 8),
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
             children: [
-              const Icon(Icons.person_outline, size: 16, color: Colors.grey),
-              const SizedBox(width: 6),
-              Text('John Doe', style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
-              const SizedBox(width: 16),
-              const Icon(Icons.access_time, size: 16, color: Colors.grey),
-              const SizedBox(width: 6),
-              Text('6 Lessons • 2h 10m', style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.person_outline, size: 16, color: Color(0xFF667eea)),
+                  const SizedBox(width: 6),
+                  Text('John Doe', style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.access_time, size: 16, color: Color(0xFF667eea)),
+                  const SizedBox(width: 6),
+                  Text('6 Lessons • 2h 10m', style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 25),
@@ -333,7 +376,8 @@ class _CourseScreenState extends State<CourseScreen> {
                   child: LinearProgressIndicator(
                     value: _progress / 100,
                     minHeight: 8,
-                    backgroundColor: Colors.white.withValues(alpha: 0.3),
+                    // ✅ FIX: Gunakan Color.fromRGBO
+                    backgroundColor: const Color.fromRGBO(255, 255, 255, 0.3),
                     valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 ),
@@ -366,12 +410,12 @@ class _CourseScreenState extends State<CourseScreen> {
           const SizedBox(height: 30),
 
           // 🔹 LESSONS LIST
-          const Text(
+          Text(
             'Course Lessons',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: isMobile ? 18 : 20,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1a1a1a),
+              color: const Color(0xFF1a1a1a),
             ),
           ),
           const SizedBox(height: 15),
@@ -379,13 +423,14 @@ class _CourseScreenState extends State<CourseScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _lessons.length,
-            separatorBuilder: (_, __) => const Divider(height: 1, color: Colors.grey),
+            separatorBuilder: (_, _) => const Divider(height: 1, color: Colors.grey),
             itemBuilder: (context, index) {
               final lesson = _lessons[index];
               return ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: CircleAvatar(
-                  backgroundColor: const Color(0xFF667eea).withValues(alpha: 0.1),
+                  // ✅ FIX: Gunakan Color.fromRGBO
+                  backgroundColor: const Color.fromRGBO(102, 126, 234, 0.1),
                   child: Text(
                     '${index + 1}',
                     style: const TextStyle(color: Color(0xFF667eea), fontWeight: FontWeight.bold),
@@ -402,16 +447,17 @@ class _CourseScreenState extends State<CourseScreen> {
     );
   }
 
-  // 🔸 SIDEBAR (Office Info) - Identik
-  Widget _buildSidebar() {
+  // 🔸 SIDEBAR (Office Info)
+  Widget _buildSidebar({required bool isMobile}) {
     return Container(
-      padding: const EdgeInsets.all(30),
+      padding: EdgeInsets.all(isMobile ? 20 : 30),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
+          // ✅ FIX: Gunakan Color.fromRGBO atau hex
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: const Color(0x14000000),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -420,53 +466,38 @@ class _CourseScreenState extends State<CourseScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'SpeakOut Office',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Color(0xFF1a1a1a)),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Jl. Jenderal Sudirman 3007 KM 3.5\nPalembang',
-            style: TextStyle(color: Colors.grey, fontSize: 14, height: 1.8),
-          ),
-          const SizedBox(height: 15),
-          const Text(
-            '(0711) 319988 / 370066',
-            style: TextStyle(color: Colors.grey, fontSize: 14, height: 1.8),
-          ),
-          GestureDetector(
-            onTap: () {},
-            child: const Text(
-              'speakout@palcomtech.com',
-              style: TextStyle(color: Color(0xFF667eea), fontSize: 14, height: 1.8),
+            style: TextStyle(
+              fontSize: isMobile ? 18 : 20,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF1a1a1a),
             ),
           ),
-          const SizedBox(height: 10),
-          GestureDetector(
-            onTap: () {},
-            child: const Text(
-              'View Map →',
-              style: TextStyle(color: Color(0xFF667eea), fontWeight: FontWeight.w500, fontSize: 14),
+          SizedBox(height: isMobile ? 15 : 20),
+          const Text(
+            'Jl. Jenderal Sudirman 3007 KM 3.5\nPalembang',
+            style: TextStyle(color: Color(0xFF666666), fontSize: 14, height: 1.8),
+          ),
+          SizedBox(height: isMobile ? 10 : 15),
+          const Text(
+            '(0711) 319988 / 370066',
+            style: TextStyle(color: Color(0xFF666666), fontSize: 14, height: 1.8),
+          ),
+          const Text(
+            'speakout@palcomtech.com',
+            style: TextStyle(color: Color(0xFF667eea), fontSize: 14, height: 1.8),
+          ),
+          SizedBox(height: isMobile ? 8 : 10),
+          const Text(
+            'View Map →',
+            style: TextStyle(
+              color: Color(0xFF667eea),
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// 🔸 REUSABLE NAV ITEM
-class _NavMenuItem extends StatelessWidget {
-  final String title;
-  const _NavMenuItem({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {},
-      child: Text(
-        title,
-        style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 14),
       ),
     );
   }
